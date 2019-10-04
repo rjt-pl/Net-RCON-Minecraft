@@ -41,10 +41,10 @@ If you need to build and install from this distribution directory itself,
 run the following commands:
 
 ```sh
-	perl Makefile.PL
-	make
-	make test
-	make install
+    perl Makefile.PL
+    make
+    make test
+    make install
 ```
 
 # WORK IN PROGRESS
@@ -63,12 +63,12 @@ run the following commands:
 
 # Support
 
-    - [RT, CPAN's request tracker](https://rt.cpan.org/NoAuth/Bugs.html?Queue=Net-RCON-Minecraft): Please report bugs here.
-    - [GitHub Repository](https://github.com/rjt-pl/Net-RCON-Minecraft)
+ - [RT, CPAN's request tracker](https://rt.cpan.org/NoAuth/Bugs.html?Queue=Net-RCON-Minecraft): Please report bugs here.
+ - [GitHub Repository](https://github.com/rjt-pl/Net-RCON-Minecraft)
 
 # License and Copyright
 
-Copyright (C) Ryan J Thompson <rjt@cpan.org>
+Copyright (C) Ryan J Thompson <<rjt@cpan.org>>
 
 This program is free software; you can redistribute it
 and/or modify it under the same terms as Perl itself.
