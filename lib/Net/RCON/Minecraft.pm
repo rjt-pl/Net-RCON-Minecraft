@@ -6,7 +6,7 @@ package Net::RCON::Minecraft;
 
 our $VERSION = '0.01';
 
-use 5.010;
+use 5.008;
 
 use Mouse;
 use Mouse::Util::TypeConstraints;
