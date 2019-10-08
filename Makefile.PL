@@ -13,7 +13,6 @@ my %WriteMakefileArgs = (
     CONFIGURE_REQUIRES  => { 'ExtUtils::MakeMaker' => 0, },
     EXE_FILES           => [ qw< bin/rcon-minecraft > ],
 
-    MIN_PERL_VERSION    => 5.008,
     TEST_REQUIRES       => { 'Test::Exception'  => 0,
                              'Test::MockModule' => 0,
                              'Test::Output'     => 0,
@@ -23,7 +22,6 @@ my %WriteMakefileArgs = (
                              'Term::ANSIColor'  => 3.02,
                              'Mouse'            => 0,
                              'Mouse::Util::TypeConstraints' => 0,
-                             'Term::ReadLine::Zoid' => 0,
                            },
     META_MERGE          => {
         resources => {

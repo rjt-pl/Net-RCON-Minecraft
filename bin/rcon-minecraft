@@ -1,16 +1,14 @@
 #!/usr/bin/env perl
 
+use 5.008;
 use strict;
 use warnings;
-use 5.008;
 
 use Net::RCON::Minecraft;
 use Getopt::Long;
 use Pod::Usage;
-use Term::ANSIColor;
-use Term::ReadLine::Zoid;
 
-our $VERSION = '1.010_01';
+our $VERSION = '0.01';
 
 #
 # Main
@@ -21,14 +19,16 @@ my %PERMITTED = map { $_ => 1 } qw<host port timeout password>;
 my %rcon_opts = map { $_ => $o{$_} } grep { $PERMITTED{$_} } keys %o;
 my $next_id = 1;
 
-my $rcon = Net::RCON::Minecraft->new(%rcon_opts, color_mode => 'ignore');
+my $rcon = Net::RCON::Minecraft->new(%rcon_opts);
 
 my @commands = @{$o{command} || []};
 push @commands, join(' ', @ARGV) if @ARGV;
+@commands = (<STDIN>) unless @commands;
+chomp @commands;
+
 $rcon->connect; # Force error immediately
 
 run_command($_) for @commands;
-console() if $o{stdin} or @commands == 0;
 
 exit;
 
@@ -36,67 +36,31 @@ exit;
 # Helpers
 #
 
-# Act like a console
-sub console {
-    my $term = Term::ReadLine::Zoid->new('mcrcon');
-    my $cmd;
-    while (defined ($cmd = $term->readline(ps1()))) {
-        print color('reset') if $o{ansi};
-        $cmd =~ s/(^\s+|\s+$)//g; # Trim
-        next unless length $cmd;
-        last if $cmd =~ /^(exit|quit)$/;
-        run_command($cmd);
-    }
-}
-
 # Run the command and display the output, echoing if so configured
 sub run_command {
-    my $reset = color('reset');
-    printf "%s%s$reset\n", ps1(), $_[0] if $o{ansi} and $o{echo};
+    print "> $_[0]\n" if $o{echo};
 
-    print "> $_[0]\n" if $o{echo} and not $o{ansi};
-    print $reset if $o{ansi};
-
-    my $resp = eval { $rcon->command($_[0], 'ignore') };
+    my $resp = eval { $rcon->command($_[0]) };
     if ($@) {
         warn "Command failed: $@";
         return;
     }
+    my $display = $o{color} ? $resp->ansi : $resp->plain;
 
-    printf "%s\n", length $resp->plain ? $resp->ansi : '[Command sent]';
-    $next_id++;
+    printf "%s\n", length $resp->plain ? $display : '[Command sent]';
 
-}
-
-# Prompt string generator
-sub ps1 {
-    my $port = '';
-    $port = join('',
-        colored(['bright_black'] => ':'),
-        colored(['cyan'] => $o{port})) if $o{port};
-    join '',
-        colored([       'magenta'] => '['),
-        colored(['bright_magenta'] => sprintf "%2d", $next_id),
-        colored([       'magenta'] => ']'),
-        colored([         'green'] => ($o{address} // 'localhost')),
-        $port,
-        colored([   'bright_cyan'] => " rcon> "),
-        color('bright_white');
 }
 
 # Return a hash of the commandline and config options
 sub get_options {
     my %o = (
         help        => sub { pod2usage -verbose => 1 },
-        tty         => -t STDOUT ? 1 : 0,
-        version     => sub { print "mcrcon version $VERSION\n"; exit; },
+        version     => sub { print "rcon-minecraft version $VERSION\n"; exit; },
     );
     GetOptions(\%o, qw<host=s port=i password=s timeout=f
-        command|cmd=s@ stdin ansi color_mode|color-mode
-        echo help version tty>
+        command|cmd=s@ stdin color
+        echo help version>
     ) or pod2usage(2);
-    $o{ansi} //= $o{tty};
-    $o{color_mode} = $o{ansi} ? 'convert' : 'strip';
 
     %o;
 }
@@ -105,13 +69,13 @@ __END__
 
 =head1 NAME
 
-mcrcon - RCON interface for Minecraft servers
+rcon-minecraft - RCON interface for Minecraft servers
 
 =head1 SYNOPSIS
 
-B<mcrcon> --pass=password [options] command
+B<rcon-minecraft> --pass=password [options] command
 
-B<mcrcon> --pass=password [options] --command='cmd1' ...
+B<rcon-minecraft> --pass=password [options] --command='cmd1' ...
 
 =head1 OPTIONS
 
@@ -120,12 +84,10 @@ B<mcrcon> --pass=password [options] --command='cmd1' ...
  --port=port        Port number                         [25575]
  --password=pass    Password
  --timeout=sec      Timeout in seconds (float)           [30.0]
- --color_mode=mode  One of convert, strip, ignore     [convert]
+ -c|--color         Use a colored output (modded servers)   [0]
  --command=cmd      Command to run. May repeat.
                     --cmd is an alias
- --stdin            Read from stdin, even if commands given
  --echo             Echo the commands themselves to stdout
- --tty              Force TTY behavior, even if not detected
  -v|--version       Display version number and exit
 
 Any remaining arguments on the commandline will be concatenated
@@ -133,11 +95,11 @@ together and interpreted as a single command, as you might expect.
 
 =head1 DESCRIPTION
 
-I<mcrcon> provides a commandline interface to interact with a Minecraft
-server using the RCON protocol. You may specify commands via commandline
-options, or via standard input. Additionally, when using C<stdin>, and
-I<mcrcon> is running from a TTY, you will have a console-like interface
-with readline support, command history, and help.
+I<rcon-minecraft> provides a commandline interface to interact with a
+Minecraft server using the RCON protocol. You may specify commands via
+commandline options, or via standard input. Additionally, when using C<stdin>,
+and I<rcon-minecraft> is running from a TTY, you will have a console-like
+interface with readline support, command history, and help.
 
 =head1 OPTION DETAILS
 
@@ -165,27 +127,15 @@ your Minecraft server's C<server.properties> file:
 Note that the password must not be blank. A blank password defined in
 C<server.properties> means that RCON is disabled on your server.
 
-=item color_mode=convert|strip|ignore
+=item -c | --color
 
-The color mode for command responses. Normally color codes are C<convert>ed
-from the Minecraft escape sequences to ANSI, so they will display properly on
-a terminal. If you are filtering or otherwise processing the output, you may
-wish to set C<--color_mode=strip>, to strip all color sequences entirely.
-Finally, you can set C<--color_mode=ignore> to pass the Minecraft color
-sequences through unmodified.
-
-=item --stdin
-
-Even if a Minecraft command is given on the command line, read additional
-commands from standard input.
+Some modded servers send back colored output. By default these color codes are
+stripped to give plaintext output. Setting C<-c> instead causes command output
+to be displayed using ANSI escape codes.
 
 =item --echo
 
 Echo commands themselves to standard output
-
-=item --tty
-
-Force TTY (terminal) behavior, even if a TTY is not detected.
 
 =item -v | --version
 
