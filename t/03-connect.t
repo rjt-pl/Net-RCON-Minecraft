@@ -18,7 +18,7 @@ my $mock = rcon_mock(new => sub { $! = 111; return });
 $rcon = Net::RCON::Minecraft->new(password => 'secret');
 is ref($rcon), 'Net::RCON::Minecraft';
 throws_ok { $rcon->connect }
-    qr/Connection to localhost:25575 failed: Connection refused/;
+    qr/Connection to localhost:25575 failed: /;
 
 $rcon = Net::RCON::Minecraft->new(password => 'wrong');
 $mock = rcon_mock();
