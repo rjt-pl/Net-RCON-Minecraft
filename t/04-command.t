@@ -26,7 +26,7 @@ for (qw/80 1024 4095 4096 4097 10240/) {
     is cmd(junk => $junk), $junk, "Frag:$_";
 }
 
-throws_ok { 
+throws_ok {
     cmd_full('desync', [ '2:2:desync' => [3, RESPONSE_VALUE, 'whoops' ]]);
 } qr/^\QDesync. Expected 2 (0x0002), got 3 (0x0003). Disconnected.\E/;
 

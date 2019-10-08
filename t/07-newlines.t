@@ -8,7 +8,7 @@ use Local::Helpers;
 
 use Net::RCON::Minecraft;
 
-# Not looking for every possible valid and invalid combination, 
+# Not looking for every possible valid and invalid combination,
 # just \n and \r\n.
 
 is cmd(newline => "Foo\nBar"),      "Foo\nBar",   '\n accepted';

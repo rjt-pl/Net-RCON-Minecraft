@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
 
-# $Id$
-
 use strict;
 use warnings;
 use 5.008;
@@ -59,14 +57,13 @@ sub run_command {
     print "> $_[0]\n" if $o{echo} and not $o{ansi};
     print $reset if $o{ansi};
 
-    my $r = eval { $rcon->command($_[0], 'ignore') };
+    my $resp = eval { $rcon->command($_[0], 'ignore') };
     if ($@) {
         warn "Command failed: $@";
         return;
     }
-    my $plain = $r->plain;
 
-    printf "%s\n", length $r->plain ? $r->ansi : '[Command sent]';
+    printf "%s\n", length $resp->plain ? $resp->ansi : '[Command sent]';
     $next_id++;
 
 }

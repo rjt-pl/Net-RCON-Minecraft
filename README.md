@@ -12,17 +12,18 @@ the server itself.
 
 ```perl
     use Net::RCON::Minecraft;
-    
-    my $rcon = Net::RCON::Minecraft->new(     host => 'mc.example.com', 
-                                          password => 'secret' );
-    
+
+    my $rcon = Net::RCON::Minecraft->new(password => 'secret',
+                                             host => 'mc.example.com');
+
     eval { $rcon->connect } or die "Connection failed: $@";
-    
+
     my $response = eval { $rcon->command('kill @a') };
     if ($@) {
         warn "Command failed: $@";
     } else {
         say "Command response: " . $response->ansi;
+        say "  Plain response: " . $response; # or $response->plain
     }
 ```
 
@@ -30,7 +31,7 @@ the server itself.
 
 Once this module is installed, full documentation is available via `perldoc
 Net::RCON::Minecraft` on your local system. Documentation for all public
-releases is also available on 
+releases is also available on
 [MetaCPAN](https://metacpan.org/pod/Net::RCON::Minecraft)
 
 # Installation
@@ -58,8 +59,13 @@ run the following commands:
        might be an expensive prerequisite. Check deps, and maybe make it
        an optional include, or rethink the need for interactivity.
  - [ ] A lot more integration testing needs to be done.
- - [ ] Consider adding live network tests if $ENV{RCON} = "host:port:password"
+ - [x] Consider adding live network tests if $ENV{RCON} = "host:port:password"
+    - Done
  - [ ] IPv6 testing
+ - [x] Is color support actually necessary? So far I haven't seen a single
+       color code in any command I've checked. Not even player team name
+       colors, and those show up in the logs...
+    - Bukkit, at least, does return color codes in RCON responses.
 
 # Support
 

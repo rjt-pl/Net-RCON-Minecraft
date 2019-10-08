@@ -13,8 +13,9 @@ Version 0.01
     my $response = eval { $rcon->command($command) };
 
     if ($response) {
-        print  "Got response: " . $response->ansi . "\n";
-        logger "Got response: " . $response->plain;
+        print  "Response: " . $response->ansi . "\n";
+        logger "Response: " . $response->plain;
+        logger "Response: " . $response; # Stringifies to $response->plain;
     }
 
 =head1 DESCRIPTION
@@ -23,9 +24,16 @@ This module encapsulates a command response from a Minecraft server. You would
 not normally create one of these objects yourself; they are generated from
 L<Net::RCON::Minecraft>'s C<command()> method.
 
-Minecraft servers return commands in a format that may include Minecraft color
-codes, so this module provides methods to strip or convert those codes as
-needed.
+Minecraft servers return commands in a format that I<may> include Minecraft
+color codes, so this module provides methods to strip or convert those codes
+as needed. At the time of release, vanilla Minecraft servers do not ever
+transmit color codes to RCON results, but modded servers such as Bukkit do.
+
+=head1 STRINGIFICATION
+
+If all you need is the plaintext response with color codes stripped, in most
+cases you can just use C<$response> as a string. The object is L<overload>ed
+to return C<$response-E<gt>plain> in such cases.
 
 =head1 CONSTRUCTOR
 
@@ -42,11 +50,13 @@ and request ID.
 
 Returns the unaltered raw command response.
 
+    $raw = $response->raw;
+
 =head2 plain
 
 Returns the command response with all color codes removed.
 
-    $plain_text = $response->plain;
+    $plain = $response->plain;
 
 =head2 ansi
 

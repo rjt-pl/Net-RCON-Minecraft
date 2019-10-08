@@ -9,17 +9,17 @@ Version 0.01
 =head1 SYNOPSIS
 
     use Net::RCON::Minecraft;
-    
+
     my $rcon = Net::RCON::Minecraft->new(password => 'secret',
                                              host => 'mc.example.com');
-    
+
     eval { $rcon->connect } or die "Connection failed: $@"; # Optional
-    
+
     my $response = eval { $rcon->command('kill @a') };
     if ($@) {
         warn "Command failed: $@";
     } else {
-        say "Command response: " . $response->ansi;
+        say "Command response: " . $response;
     }
 
 =head1 DESCRIPTION
@@ -92,7 +92,7 @@ C<rcon.password=> line in the F<server.properties> file for your server.
 Specifies the timeout for all socket reads, in seconds. C<connect()> and
 C<command()> will wait this long before giving up.
 
-=back 
+=back
 
 =head1 CONNECTING
 
@@ -106,7 +106,7 @@ control of your connection, or more diagnostic ability.
 
 =head2 connect
 
-B<This method is optional.> 
+B<This method is optional.>
 diagnostics.
 
     eval { $rcon->connect }; # $@ will be set on error
@@ -147,15 +147,19 @@ response. This method is capable of handling fragmented responses (spread over
 several response packets), and will concatenate them all before returning the
 result.
 
-The response is a L<Net::RCON::Minecraft::Response> object, which is just a
-fancy way to provide different handling of the Minecraft color codes:
+For all intents and purposes C<$response> can be treated like a plaintext
+string. However, what you are really getting is L<overload> stringification of
+a L<Net::RCON::Minecraft::Response> object, as some modded servers will return
+Minecraft C<U+00a7> color codes, and you will want to handle those:
 
     $response->raw;   # Original. Minecraft color codes are left as-is
     $response->plain; # Color codes stripped. The result is plain text
     $response->ansi;  # Color codes converted to ANSI escape sequences
 
 See L<Net::RCON::Minecraft::Response> for I<slightly> more detail, but there
-really isn't much to it.
+really isn't much to it. C<$response-E<gt>plain> will always return a scalar,
+so may be slightly safer when dealing with other code that doesn't handle
+overloaded objects well.
 
 C<command()> will C<croak()> in the event of connection failure, no command
 given, or any unexpected protocol response from the server. C<command()> does

@@ -34,8 +34,8 @@ use Net::RCON::Minecraft;
     is $next_id, 3, 'Actual command will use 4';
 
     ok cmd(foo => 'bar');
-    
-    is $rcon->_next_id, 4, 
+
+    is $rcon->_next_id, 4,
         'next_id increments on command but not on nonce';
 }
 
@@ -51,7 +51,7 @@ use Net::RCON::Minecraft;
 # For simulating misbehaving servers. If you want a terminator, add it yourself.
 sub quickpack { pack 'VV!VA*', @_ }
 
-{ 
+{
     my $mock = rcon_mock();
     my $rcon = Net::RCON::Minecraft->new(password => 'secret');
     $rcon->connect; # Need explicit call here to call private method
@@ -87,7 +87,7 @@ sub quickpack { pack 'VV!VA*', @_ }
 {
     my $mock = rcon_mock(send => sub { $! = 11; return });
     my $rcon = Net::RCON::Minecraft->new(password => 'secret');
-    throws_ok { $rcon->_send_encode(2, 2, undef) } 
+    throws_ok { $rcon->_send_encode(2, 2, undef) }
         qr/^Socket write failed:/, '_send_encode error';
 }
 

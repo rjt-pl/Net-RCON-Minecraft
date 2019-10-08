@@ -7,8 +7,7 @@ use Test::Exception;
 use Test::More;
 use Test::Exception;
 use Local::Helpers;
-
-use Net::RCON::Minecraft::Response;
+use Net::RCON::Minecraft;
 
 # Arrays to test strip, convert, and ignore color modes, respectively.
 # Left side is input string, right is expected output.
@@ -45,10 +44,14 @@ my %tests = (
 );
 
 for (sort keys %tests) {
-    my $res = Net::RCON::Minecraft::Response->new(raw => $_);
-    is $res->raw,          $_,          'Raw matches';
-    is $res->ansi,  $tests{$_}{ansi},   'ANSI is correct';
-    is $res->plain, $tests{$_}{plain},  'Plain is correct';
+    my $id = 1 + int(rand(16384));
+    my $resp = Net::RCON::Minecraft::Response->new(raw => $_, id => $id);
+    my ($plain, $ansi, $raw)  = ($resp->plain, $resp->ansi, $resp->raw);
+    is $raw,          $_,          'Raw matches';
+    is $ansi,  $tests{$_}{ansi},   'ANSI is correct';
+    is $plain, $tests{$_}{plain},  'Plain is correct';
+    is $resp,  $tests{$_}{plain},  'Stringification';
+    is $resp->id, $id,             'id';
 }
 
 done_testing;

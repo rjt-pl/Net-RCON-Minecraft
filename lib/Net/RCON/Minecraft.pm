@@ -1,10 +1,6 @@
-# $Id$
-
 # Minecraft implementation of the RCON protocol.
 
 package Net::RCON::Minecraft;
-
-our $VERSION = '0.01';
 
 use 5.008;
 
@@ -13,9 +9,12 @@ use Mouse::Util::TypeConstraints;
 use Net::RCON::Minecraft::Response;
 use IO::Socket       1.18;  # autoflush
 use IO::Select;
+use Term::ANSIColor;
 use Carp;
 
 no warnings 'uninitialized';
+
+our $VERSION = '0.01';
 
 use constant {
     # Packet types
@@ -49,8 +48,9 @@ sub connect {
         PeerAddr => $s->host,
         PeerPort => $s->port,
         Proto    => 'tcp',
-    )) or croak 'Connection to ' . $s->host. ':' . $s->port . ' failed: ' . $!;
+    )) or croak "Connection to @{[$s->host]}:@{[$s->port]} failed: $!";
 
+    $s->_socket->autoflush(1);
     $s->_select->remove($s->_select->handles);
     $s->_select->add($s->_socket);
 
@@ -69,8 +69,9 @@ sub connect {
     return 1;
 }
 
-sub disconnect { 
-    $_[0]->_socket->shutdown(2) if $_[0]->_socket and $_[0]->_socket->connected; 
+sub disconnect {
+    my $s = shift;
+    $s->_socket->shutdown(2) if $s->_socket and $s->_socket->connected;
     1;
 }
 
@@ -87,7 +88,7 @@ sub command {
     $s->_send_encode(COMMAND, $id, $command);
     $s->_send_encode($nonce, $id, 'nonce');
 
-    my $res = '';
+    my $raw = '';
     while (1) {
         my ($size,$res_id,$type,$payload) = $s->_read_decode;
         if ($id != $res_id) {
@@ -100,12 +101,12 @@ sub command {
         croak "size:$size id:$id got type $type, not RESPONSE_VALUE(0)"
             if $type != RESPONSE_VALUE;
         last if $payload eq sprintf 'Unknown request %x', $nonce;
-        $res .= $payload;
+        $raw .= $payload;
     }
 
-    $res =~ s!\r\n!\n!g; # \R would be nice, but requires 5.010
+    $raw =~ s!\r\n!\n!g; # \R would be nice, but requires 5.010
 
-    Net::RCON::Minecraft::Response->new(raw => $res, id => $id);
+    Net::RCON::Minecraft::Response->new(raw => $raw, id => $id);
 }
 
 sub DESTROY { $_[0]->disconnect }
@@ -119,10 +120,10 @@ sub DESTROY { $_[0]->disconnect }
 sub _read_decode {
     my ($s) = @_;
 
-    local $_ = $s->_read_with_timeout(4); 
+    local $_ = $s->_read_with_timeout(4);
 
     my $size = unpack 'V';
-    
+
     croak 'Packet too short. Size field = ' . $size . ' (10 is smallest)'
         if $size < 10;
 
@@ -139,7 +140,7 @@ sub _read_with_timeout {
     my ($s, $len) = @_;
 
     my $ret = '';
-    
+
     while ($len > length $ret) {
         if ($s->_select->can_read($s->timeout)) {
             my $buf = '';
@@ -151,7 +152,7 @@ sub _read_with_timeout {
             croak "Server timeout. Got " .length($ret)."/".$len." bytes";
         }
     }
-    
+
     $ret;
 }
 

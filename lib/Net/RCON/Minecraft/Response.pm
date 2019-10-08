@@ -2,13 +2,15 @@ package Net::RCON::Minecraft::Response;
 
 # Minecraft command response
 
-our $VERSION = '0.01';
-
 use 5.008;
 use Mouse;
 use Mouse::Util::TypeConstraints;
-
 use Term::ANSIColor;
+no warnings 'uninitialized';
+
+our $VERSION = '0.01';
+
+use overload q("") => sub { shift->plain }, fallback => 1;
 
 # Minecraft -> ANSI color map
 my %COLOR = map { $_->[1] => color($_->[0]) } (
@@ -32,12 +34,10 @@ has plain => ( is => 'ro', isa => 'Str', lazy => 1, default => sub {
     $raw;
 });
 
-
 has ansi  => ( is => 'ro', isa => 'Str', lazy => 1, default => sub {
     local $_ = $_[0]->raw;
     s/\x{00A7}(.)/$COLOR{$1}/g;
     $_ . $COLOR{r};
 });
-
 
 __PACKAGE__->meta->make_immutable();

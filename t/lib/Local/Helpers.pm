@@ -13,13 +13,12 @@ use Test::Output;
 use Test::MockModule;
 use Test::Warnings ':all';
 use Carp;
-use Data::Dump qw/pp dd/;
 use List::Util qw/min max any/;
-use IO::Socket 1.18;
+use IO::Socket;
 use IO::Select;
 
 use Exporter 'import';
-our @EXPORT = qw(cmd cmd_full rcon_mock disp_add 
+our @EXPORT = qw(cmd cmd_full rcon_mock disp_add env_rcon live_skip
                  COMMAND AUTH AUTH_RESPONSE AUTH_FAIL RESPONSE_VALUE );
 
 # Packet type constants as defined by:
@@ -30,15 +29,19 @@ use constant {
     AUTH_RESPONSE   => 2, # Server auth response
     AUTH_FAIL       =>-1, # Auth failure (password invalid)
     RESPONSE_VALUE  => 0, # Server response
+
+    live_skip       => '$ENV{RCON_TEST}=pass@host[:port] for live testing',
 };
 
 # Dispatch table for default (but still mocked) methods
 my %default_mock = (
     #shutdown is now done in rcon_mock() so it can drain the buffer
+    autoflush    => sub { $_[0]->{_mock}{autoflush} = $_[1] },
     connected    => sub { $_[0]->{_mock}{connected} },
     send         => \&mock_send,
     sysread      => \&mock_sysread,
-    read_buf     => '', 
+    read_buf     => '',
+
     _mock_push   => \&_mock_push,
     _disp_find   => \&_disp_find,
     _disp_dump   => \&_disp_dump,
@@ -46,7 +49,7 @@ my %default_mock = (
 
 sub rcon_mock {
     my %mocks = @_;
-    
+
     # Eventually returned
     my $mock = {
         read_dispatch   => [ ],
@@ -64,7 +67,7 @@ sub rcon_mock {
         remove   => sub { delete @handles{@_} },
         handles  => sub { keys %handles },
         add      => sub { $handles{$_[1]} = 1 },
-        can_read => sub { 
+        can_read => sub {
             my ($s, $timeout) = @_;
             0 < length $mock->{read_buf};
         },
@@ -74,13 +77,13 @@ sub rcon_mock {
     # IO::Socket::NET Mock
     my $nmock = Test::MockModule->new('IO::Socket::INET');
 
-    %mocks = ( 
+    %mocks = (
         %default_mock,
-        new => sub { 
+        new => sub {
             $mock->{connected} = 1;
-            shift; bless { @_, _mock => $mock }, 'IO::Socket::INET'; 
+            shift; bless { @_, _mock => $mock }, 'IO::Socket::INET';
         },
-        %mocks 
+        %mocks
     );
 
     disp_add($mock, '1:3:secret' => sub { [1, AUTH_RESPONSE, ''] });
@@ -111,24 +114,24 @@ sub _disp_find {
         my ($check, $resp, $pri) = @$_;
         $pri = 0 if not defined $pri;
         my %info; # Any potential info extracted from check phase
-       
+
         # $check phase. Skip this iteration if not a match
         if ('CODE' eq ref $check) {
             %info = $check->($id, $type, $payload);
             next unless scalar keys %info;
-        } 
+        }
         elsif ('Regexp' eq ref $check) {
             next unless "$id:$type:$payload" =~ /$check/;
             %info = %+;
         }
         elsif ('' eq ref $check) {
             next unless "$id:$type:$payload" eq $check;
-        } else { 
-            croak "Expecting CODE, Regexp or scalar, got " . ref $check 
+        } else {
+            croak "Expecting CODE, Regexp or scalar, got " . ref $check
         }
 
         # $resp can be either an array ref [ $id, $type, $payload ]
-        # or a code ref that takes $id, $type, $payload, %info and 
+        # or a code ref that takes $id, $type, $payload, %info and
         # returns an array ref [ $id, $type, $payload ]
         $r{$pri} = $resp->($id, $type, $payload, %info) if 'CODE' eq ref $resp;
         $r{$pri} = $resp if 'ARRAY' eq ref $resp;
@@ -193,8 +196,8 @@ sub _mock_push {
 
 # Mock read by pulling from the read_buf created by mock_send.
 # Basic error handling if we are not connected or the buf
-# is empty. (Instead of blocking, we croak()) 
-sub mock_sysread { 
+# is empty. (Instead of blocking, we croak())
+sub mock_sysread {
     my ($s, undef, $len) = @_;
 
     confess "Buffer not defined" if not exists $s->{_mock}{read_buf};
@@ -228,26 +231,33 @@ sub cmd_full($@) {
     my $rcon = Net::RCON::Minecraft->new(password => 'secret');
     disp_add($mock, @$_) for @_;
     disp_add($mock, qr/(?<id>\d+):(?<nonce>\d+):nonce/ => sub {
-        my ($id, $type, $payload, %p) = @_; 
+        my ($id, $type, $payload, %p) = @_;
         [ $p{id}, RESPONSE_VALUE, sprintf("Unknown request %x", $p{nonce}) ]
     });
 
     #ok $rcon->connect, 'Connects before ' . $cmd;
-    
+
     local $Carp::CarpLevel = 2;
-    my $res = $rcon->command($cmd);
-
-    is ref($res), 'Net::RCON::Minecraft::Response';
-
-    $res->plain;
+    $rcon->command($cmd);
 }
 
-# Short form for most common case of simply having a command return a 
+# Short form for most common case of simply having a command return a
 # specific response
 sub cmd($$) {
     my ($cmd, $resp) = @_;
 
     cmd_full($cmd, [ "2:2:$cmd" => [2, RESPONSE_VALUE, $resp ] ] );
+}
+
+# Get and parse $ENV{RCON_TEST} or skip. Call in SKIP: block
+sub env_rcon() {
+    return () unless $ENV{RCON_TEST};
+    my ($pass, $host, $port) = $ENV{RCON_TEST} =~ /^(.+?)@([^:]+)(?::?(.+))?$/
+        or die '$ENV{RCON_TEST} format invalid. Expecting pass@host[:port]';
+
+    $port = 25575 unless defined $port;
+
+    (host => $host, port => $port, password => $pass);
 }
 
 1;
