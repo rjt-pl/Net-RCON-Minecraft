@@ -73,14 +73,13 @@ rcon-minecraft - RCON interface for Minecraft servers
 
 =head1 SYNOPSIS
 
-B<rcon-minecraft> --pass=password [options] command
+B<rcon-minecraft> --pass=password [options] command args ...
 
 B<rcon-minecraft> --pass=password [options] --command='cmd1' ...
 
 =head1 OPTIONS
 
  --host=host        Hostname to connect to          [127.0.0.1]
-                    --address, --addr, --hostname are aliases
  --port=port        Port number                         [25575]
  --password=pass    Password
  --timeout=sec      Timeout in seconds (float)           [30.0]
@@ -127,15 +126,24 @@ your Minecraft server's C<server.properties> file:
 Note that the password must not be blank. A blank password defined in
 C<server.properties> means that RCON is disabled on your server.
 
+=item --timeout=sec
+
+Normally C<rcon-minecraft> will wait 30 seconds for the server to respond
+before it reports a timeout and exits. Setting a different timeout will affect
+I<all> network operations, including connecting, and running commands. Some
+commands may legitimately take a long time to return, such as C<fill>,
+C<reload>, etc., so beware of setting this value too low.
+
 =item -c | --color
 
 Some modded servers send back colored output. By default these color codes are
 stripped to give plaintext output. Setting C<-c> instead causes command output
-to be displayed using ANSI escape codes.
+to be displayed using ANSI escape codes. Whether those escape codes will
+actually produce colored output depends entirely on your terminal.
 
 =item --echo
 
-Echo commands themselves to standard output
+Echo commands themselves to standard output before they are run.
 
 =item -v | --version
 
