@@ -53,19 +53,7 @@ run the following commands:
 ## Todo
 
  - [ ] Unit tests for `bin/rcon-minecraft`
- - [ ] `bin/rcon-minecraft` goes straight to prompt now that we don't connect.
-       Should we have a password prompt?
- - [ ] [Term::ReadLine::Zoid](https://metacpan.org/pod/Term::ReadLine::Zoid)
-       might be an expensive prerequisite. Check deps, and maybe make it
-       an optional include, or rethink the need for interactivity.
  - [ ] A lot more integration testing needs to be done.
- - [x] Consider adding live network tests if $ENV{RCON} = "host:port:password"
-    - Done
- - [ ] IPv6 testing
- - [x] Is color support actually necessary? So far I haven't seen a single
-       color code in any command I've checked. Not even player team name
-       colors, and those show up in the logs...
-    - Bukkit, at least, does return color codes in RCON responses.
 
 # Support
 

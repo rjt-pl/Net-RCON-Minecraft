@@ -7,7 +7,7 @@ use 5.008;
 use Mouse;
 use Mouse::Util::TypeConstraints;
 use Net::RCON::Minecraft::Response;
-use IO::Socket       1.18;  # autoflush
+use IO::Socket::IP;
 use IO::Select;
 use Term::ANSIColor;
 use Carp;
@@ -25,14 +25,14 @@ use constant {
     RESPONSE_VALUE  =>  0,  # Server response
 };
 
-class_type 'INET' => { class => 'IO::Socket::INET' };
+class_type 'IP' => { class => 'IO::Socket::IP' };
 
 has  host      => ( is => 'ro', default => 'localhost', isa => 'Str'        );
 has  port      => ( is => 'ro', default => 25575,       isa => 'Int'        );
 has  password  => ( is => 'ro', default => '',          isa => 'Str'        );
 has  timeout   => ( is => 'rw', default => 30,          isa => 'Num'        );
 has _select    => ( is => 'ro', default => sub { IO::Select->new }          );
-has _socket    => ( is => 'rw', default => undef,       isa => 'Maybe[INET]');
+has _socket    => ( is => 'rw', default => undef,       isa => 'Maybe[IP]'  );
 has _next_id   => ( is => 'rw', default => 1,           isa => 'Int'        );
 
 after _next_id => sub { $_[0]->{_next_id} = ($_[0]->{_next_id} + 1) % 2**31 };
@@ -44,7 +44,7 @@ sub connect {
 
     croak 'Password required' unless length $s->password;
 
-    $s->_socket(IO::Socket::INET->new(
+    $s->_socket(IO::Socket::IP->new(
         PeerAddr => $s->host,
         PeerPort => $s->port,
         Proto    => 'tcp',

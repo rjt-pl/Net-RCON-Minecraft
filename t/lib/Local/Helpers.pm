@@ -14,7 +14,7 @@ use Test::MockModule;
 use Test::Warnings ':all';
 use Carp;
 use List::Util qw/min max any/;
-use IO::Socket;
+use IO::Socket::IP;
 use IO::Select;
 
 use Exporter 'import';
@@ -56,7 +56,7 @@ sub rcon_mock {
         read_buf        => '',
         connected       => 0,
         smock           => Test::MockModule->new('IO::Select'),
-        nmock           => Test::MockModule->new('IO::Socket::INET'),
+        nmock           => Test::MockModule->new('IO::Socket::IP'),
     };
 
     # IO::Select Mock
@@ -74,25 +74,21 @@ sub rcon_mock {
     );
     $smock->mock($_ => $smocks{$_}) for keys %smocks;
 
-    # IO::Socket::NET Mock
-    my $nmock = Test::MockModule->new('IO::Socket::INET');
-
     %mocks = (
         %default_mock,
         new => sub {
             $mock->{connected} = 1;
-            shift; bless { @_, _mock => $mock }, 'IO::Socket::INET';
+            shift; bless { @_, _mock => $mock }, 'IO::Socket::IP';
         },
         %mocks
     );
 
     disp_add($mock, '1:3:secret' => sub { [1, AUTH_RESPONSE, ''] });
-    $nmock->mock($_ => $mocks{$_}) for keys %mocks;
-    $nmock->mock(shutdown => sub {
+    $mock->{nmock}->mock($_ => $mocks{$_}) for keys %mocks;
+    $mock->{nmock}->mock(shutdown => sub {
         $_[0]->{_mock}{connected} = 0;
         $mock->{read_buf} = '';
     });
-
 
     $mock;
 }
