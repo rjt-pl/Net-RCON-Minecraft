@@ -48,6 +48,10 @@ run the following commands:
     make install
 ```
 
+You may need to follow your system's usual build instructions if that doesn't
+work. For example, Windows users will probably want to use `gmake` instead of
+`make`. Otherwise, the instructions are the same.
+
 # WORK IN PROGRESS
 
 ## Todo
