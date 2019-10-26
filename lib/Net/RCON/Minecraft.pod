@@ -55,8 +55,7 @@ directory:
     enable-rcon=true
 
 Your Minecraft server will need to be restarted for these options to take
-effect. Firewall rules may need to be added, but are beyond the scope of this
-manual.
+effect.
 
 =head3 A Note About Security
 
@@ -66,8 +65,8 @@ connect to C<rcon.port> and provide the C<rcon.password> will have full,
 operator-level access to run arbitrary commands on your server.
 
 If you do nothing else, please at least choose a secure, random password.
-Blocking C<rcon.port> in your firewall will ensure only permitted hosts can
-use RCON. Contact your network administrator.
+Configuring access to C<rcon.port> (TCP) in your firewall will ensure only
+permitted hosts can use RCON. Contact your network administrator.
 
 =head1 CONSTRUCTOR
 
