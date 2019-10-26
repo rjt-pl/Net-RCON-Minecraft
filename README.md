@@ -34,6 +34,30 @@ Net::RCON::Minecraft` on your local system. Documentation for all public
 releases is also available on
 [MetaCPAN](https://metacpan.org/pod/Net::RCON::Minecraft)
 
+## `rcon-minecraft`
+
+While the main focus of this distribution is the Net::RCON::Minecraft library
+itself, this distribution also contains a utility, `rcon-minecraft`, which
+provides a rudimentary commandline interface to the library.
+
+Synopsis:
+
+```sh
+    rcon-minecraft --host=mc.example.com --pass=secret \
+        --command='command args' --command='command args' ...
+```
+
+Help for rcon-minecraft is available via either of the following:
+
+```sh
+    perldoc rcon-minecraft  # Preferred, if you have perldoc
+    rcon-minecraft --help   # Options summary
+```
+
+If for some reason none of those options work for you, you can view the latest
+documentation for this script online:
+[rcon-minecraft](https://metacpan.org/pod/distribution/Net-RCON-Minecraft/bin/rcon-minecraft)
+
 # Installation
 
 If you simply want the latest public release, install via CPAN.
@@ -51,13 +75,6 @@ run the following commands:
 You may need to follow your system's usual build instructions if that doesn't
 work. For example, Windows users will probably want to use `gmake` instead of
 `make`. Otherwise, the instructions are the same.
-
-# WORK IN PROGRESS
-
-## Todo
-
- - [ ] Unit tests for `bin/rcon-minecraft`
- - [ ] A lot more integration testing needs to be done.
 
 # Support
 
