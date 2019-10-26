@@ -9,7 +9,6 @@ use Mouse::Util::TypeConstraints;
 use Net::RCON::Minecraft::Response;
 use IO::Socket::IP;
 use IO::Select;
-use Term::ANSIColor;
 use Carp;
 
 no warnings 'uninitialized';
@@ -84,7 +83,7 @@ sub command {
     $s->connect;
 
     my $id    = $s->_next_id;
-    my $nonce = 16 + int rand(2 << 15 - 16); # Extra insurance
+    my $nonce = 16 + int rand(1 << 15 - 16); # Extra insurance
     $s->_send_encode(COMMAND, $id, $command);
     $s->_send_encode($nonce, $id, 'nonce');
 

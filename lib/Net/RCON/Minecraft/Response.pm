@@ -6,11 +6,15 @@ use 5.008;
 use Mouse;
 use Mouse::Util::TypeConstraints;
 use Term::ANSIColor;
+use Carp;
 no warnings 'uninitialized';
 
 our $VERSION = '0.01';
 
-use overload q("") => sub { shift->plain }, fallback => 1;
+use overload q("") => sub { shift->plain },
+              '++' => sub { $_[0] = $_[0]->plain + 1 },
+              '--' => sub { $_[0] = $_[0]->plain - 1 },
+              fallback => 1;
 
 # Minecraft -> ANSI color map
 my %COLOR = map { $_->[1] => color($_->[0]) } (

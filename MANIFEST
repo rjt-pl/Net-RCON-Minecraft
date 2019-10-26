@@ -16,6 +16,9 @@ t/04-command.t
 t/05-response.t
 t/06-helpers.t
 t/07-newlines.t
+t/bin/00-run.t
+t/bin/01-getopt.t
+t/bin/02-command.t
 t/lib/Local/Helpers.pm
 t/live/01-connect.t
 t/live/02-command.t
@@ -25,4 +28,5 @@ xt/manifest.t
 xt/pod-coverage.t
 xt/pod.t
 xt/boilerplate.t
+xt/whitespace.t
 bin/rcon-minecraft

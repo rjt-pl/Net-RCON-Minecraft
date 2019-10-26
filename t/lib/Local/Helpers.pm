@@ -14,12 +14,13 @@ use Test::MockModule;
 use Test::Warnings ':all';
 use Carp;
 use List::Util qw/min max any/;
+use lib qw<bin>;
 use IO::Socket::IP;
 use IO::Select;
 
 use Exporter 'import';
-our @EXPORT = qw(cmd cmd_full rcon_mock disp_add env_rcon live_skip
-                 COMMAND AUTH AUTH_RESPONSE AUTH_FAIL RESPONSE_VALUE );
+our @EXPORT = qw(cmd cmd_full rcon_mock disp_add env_rcon live_skip bin_run
+                 bin_mock COMMAND AUTH AUTH_RESPONSE AUTH_FAIL RESPONSE_VALUE );
 
 # Packet type constants as defined by:
 # https://developer.valvesoftware.com/wiki/Source_RCON_Protocol#Packet_Type
@@ -46,6 +47,29 @@ my %default_mock = (
     _disp_find   => \&_disp_find,
     _disp_dump   => \&_disp_dump,
 );
+
+
+# Mock Net::RCON::Minecraft and require the bin/ file with args from @_
+# The mocked version just returns true for everything, so I can ensure
+# the right calls are being made.
+sub bin_mock {
+    my $code = shift;
+    my $mock_args = shift if 'HASH' eq ref $_[0];
+
+    my $mock = Test::MockModule->new('Net::RCON::Minecraft');
+    my %mocks = (
+        connect     => sub { defined $_[1] ? $_[1] : 1 },
+        command     => sub {
+            my ($s, $cmd) = @_;
+            my $raw = $cmd eq 'empty' ? '' : "RAN $cmd";
+            Net::RCON::Minecraft::Response->new(raw => $raw, id => 1);
+        },
+        $mock_args ? %$mock_args : (),
+    );
+    $mock->mock($_ => $mocks{$_}) for keys %mocks;
+
+    $mock;
+}
 
 sub rcon_mock {
     my %mocks = @_;
