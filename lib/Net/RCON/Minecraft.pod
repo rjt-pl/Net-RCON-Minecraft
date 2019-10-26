@@ -58,6 +58,17 @@ Your Minecraft server will need to be restarted for these options to take
 effect. Firewall rules may need to be added, but are beyond the scope of this
 manual.
 
+=head3 A Note About Security
+
+While the full security implications of enabling RCON are beyond the scope of
+this documentation, the most important consideration is that anyone who can
+connect to C<rcon.port> and provide the C<rcon.password> will have full,
+operator-level access to run arbitrary commands on your server.
+
+If you do nothing else, please at least choose a secure, random password.
+Blocking C<rcon.port> in your firewall will ensure only permitted hosts can
+use RCON. Contact your network administrator.
+
 =head1 CONSTRUCTOR
 
 =head2 new( %options )
