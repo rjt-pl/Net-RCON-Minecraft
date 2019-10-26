@@ -105,49 +105,7 @@ C<command()> will wait this long before giving up.
 
 =back
 
-=head1 CONNECTING
-
-This module will connect to the Minecraft server automatically as soon as the
-first C<command()> is run. It will stay connected unless there is an error,
-and will attempt to reconnect the next time C<command()> is run.
-
-Therefore, none of the methods in this section of the manual are stricly
-necessary. However, they are here for you if you need more fine-grained
-control of your connection, or more diagnostic ability.
-
-=head2 connect
-
-B<This method is optional.>
-diagnostics.
-
-    eval { $rcon->connect }; # $@ will be set on error
-
-Attempt to connect to the configured host and port, and issue the
-configured password for authentication.
-
-If already connected, returns C<undef> (nothing to be done).
-
-This method will C<croak()> if the connection fails for any reason.
-Otherwise, returns a true value.
-
-=head2 connected
-
-In normal operation, you probably won't need to call this method.
-
-    say "We are connected!" if $rcon->connected;
-
-Returns true if we have a connected socket, false otherwise. Note that we have
-no way to tell if there is a misbehaving Minecraft server on the other
-side of that socket, so it is entirely possible for this command (or
-C<connect()>) to succeed, but C<command()> calls to fail.
-
-=head2 disconnect
-
-    $rcon->disconnect;
-
-Disconnects from the server by closing the socket. Always succeeds.
-
-=head1 METHODS
+=head1 SENDING COMMANDS
 
 =head2 command( $command )
 
@@ -177,6 +135,8 @@ given, or any unexpected protocol response from the server. C<command()> does
 B<not> know anything about Minecraft commands (or their responses) themselves,
 and this is by design.
 
+=head1 OTHER METHODS
+
 =head2 timeout( $seconds )
 
     $s->timeout(3.5); # Timeout is now 3.5 seconds
@@ -192,9 +152,48 @@ The default of 30 seconds is normally enough, but may need to be set higher if
 you are running a command that takes a long time, or the Minecraft server is
 very busy.
 
-=head1 ERROR HANDLING
+=head2 connect
 
-This module C<croak()>s on error.  You are advised to wrap all method calls,
+B<This method is optional.> By default, this module will connect to the
+Minecraft server automatically as soon as the first C<command()> is run. It
+will stay connected unless there is an error, and will attempt to reconnect
+the next time C<command()> is run.
+
+However, you may explicitly call C<connect()> if you need more granular
+control, and earlier error handling in the event of a failed connection:
+
+    eval { $rcon->connect }; # $@ will be set on error
+
+The above attempts to connect to the configured host and port, and issues
+the configured password for authentication.
+
+If already connected, does nothing but returns a true value.
+
+This method will C<croak()> if the connection fails for any reason, and C<$@>
+will be set. Otherwise, C<connect()> will return a true value.
+
+=head2 connected
+
+In normal operation, you probably won't need to call this method.
+
+    say "We are connected!" if $rcon->connected;
+
+Returns true if we have a connected socket, false otherwise. Note that we have
+no way to tell if there is a misbehaving Minecraft server on the other side of
+that socket, so it is entirely possible for this command (or C<connect()>) to
+succeed, but C<command()> calls to fail.
+
+=head2 disconnect
+
+    $rcon->disconnect;
+
+Disconnects from the server by closing the socket. Always succeeds.
+
+=head1 DIAGNOSTICS
+
+=head2 Errors
+
+This module C<croak()>s on error. You are advised to wrap all method calls,
 especially C<connect()> and C<command()> in block C<eval>, like so:
 
     my $r = eval { $rcon->command($cmd_str) };
