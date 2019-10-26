@@ -4,7 +4,6 @@ use 5.008;
 use strict;
 use warnings;
 
-use lib qw< /home/ryan/src/Net-RCON-Minecraft/lib >;
 use Net::RCON::Minecraft;
 use Getopt::Long qw< GetOptionsFromArray >;
 use Pod::Usage;
