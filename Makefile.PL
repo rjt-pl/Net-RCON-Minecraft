@@ -13,15 +13,18 @@ my %WriteMakefileArgs = (
     CONFIGURE_REQUIRES  => { 'ExtUtils::MakeMaker' => 0, },
     EXE_FILES           => [ qw< bin/rcon-minecraft > ],
 
-    TEST_REQUIRES       => { 'Test::Exception'  => 0,
-                             'Test::MockModule' => 0,
-                             'Test::Output'     => 0,
-                             'Test::More'       => 0,
+    TEST_REQUIRES       => { 'List::Util'                   => 0,
+                             'Test::Exception'              => 0,
+                             'Test::MockModule'             => 0,
+                             'Test::More'                   => 0,
+                             'Test::Output'                 => 0,
+                             'Test::Warnings'               => 0,
                            },
-    PREREQ_PM           => { 'IO::Socket'       => 1.18,
-                             'Term::ANSIColor'  => 3.02,
-                             'Mouse'            => 0,
+    PREREQ_PM           => { 'IO::Select'                   => 0,
+                             'IO::Socket::IP'               => 0,
+                             'Mouse'                        => 0,
                              'Mouse::Util::TypeConstraints' => 0,
+                             'Term::ANSIColor'              => 0,
                            },
     META_MERGE          => {
         resources => {
@@ -31,7 +34,7 @@ my %WriteMakefileArgs = (
     },
     dist      => { COMPRESS => 'gzip -9f', SUFFIX => 'gz',           },
     clean     => { FILES    => 'Net-RCON-Minecraft-*'                },
-    test      => { TESTS    => 't/*.t t/deprecated/*.t t/bin/*.t'    },
+    test      => { TESTS    => 't/*.t t/bin/*.t'                     },
 );
 
 # Compatibility with old versions of ExtUtils::MakeMaker
