@@ -16,5 +16,5 @@ inc/
 nytprof.out
 pod2htm*.tmp
 pm_to_blib
-Minecraft-RCON-*
-Minecraft-RCON-*.tar.gz
+Net-RCON-Minecraft-*
+Net-RCON-Minecraft-*.tar.gz
